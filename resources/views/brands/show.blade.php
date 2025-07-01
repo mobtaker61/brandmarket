@@ -47,6 +47,30 @@
                         </div>
                     </div>
                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">سطح برند</label>
+                        @if($brand->level)
+                            <div class="flex items-center">
+                                <i class="text-lg ml-2 {{ $brand->level->icon ?? '' }}" style="color: {{ $brand->level->color }}"></i>
+                                <span class="text-gray-900">{{ $brand->level->display_name }}</span>
+                            </div>
+                        @else
+                            <span class="text-gray-500">تعریف نشده</span>
+                        @endif
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">مالک برند</label>
+                        @if($brand->owner)
+                            <div class="flex items-center">
+                                <span class="text-gray-900">{{ $brand->owner->name }}</span>
+                                @if($brand->owner->userType)
+                                    <span class="text-sm text-gray-500 mr-2">({{ $brand->owner->userType->display_name }})</span>
+                                @endif
+                            </div>
+                        @else
+                            <span class="text-gray-500">تعریف نشده</span>
+                        @endif
+                    </div>
+                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">وضعیت برند</label>
                         <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $brand->status_class }}">
                             {{ $brand->status_text }}

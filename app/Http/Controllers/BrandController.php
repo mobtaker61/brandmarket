@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Brand;
 use App\Models\ProductCategory;
 use App\Models\Country;
+use App\Models\BrandLevel;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -58,6 +60,16 @@ class BrandController extends Controller
             $query->where('is_active', $request->is_active);
         }
 
+        // فیلتر سطح برند
+        if ($request->filled('brand_level')) {
+            $query->where('brand_level_id', $request->brand_level);
+        }
+
+        // فیلتر مالک برند
+        if ($request->filled('owner')) {
+            $query->where('owner_id', $request->owner);
+        }
+
         // مرتب‌سازی
         switch ($request->get('sort', 'latest')) {
             case 'oldest':
@@ -80,8 +92,10 @@ class BrandController extends Controller
         // داده‌های مورد نیاز برای فیلترها
         $countries = Country::active()->ordered()->get();
         $categories = ProductCategory::active()->ordered()->get();
+        $brandLevels = BrandLevel::active()->ordered()->get();
+        $users = User::with('userType')->get();
 
-        return view('brands.index', compact('brands', 'countries', 'categories'));
+        return view('brands.index', compact('brands', 'countries', 'categories', 'brandLevels', 'users'));
     }
 
     /**
@@ -91,8 +105,10 @@ class BrandController extends Controller
     {
         $countries = Country::active()->ordered()->get();
         $categories = ProductCategory::active()->ordered()->get();
+        $brandLevels = BrandLevel::active()->ordered()->get();
+        $users = User::with('userType')->get();
 
-        return view('brands.create', compact('countries', 'categories'));
+        return view('brands.create', compact('countries', 'categories', 'brandLevels', 'users'));
     }
 
     /**
@@ -104,7 +120,9 @@ class BrandController extends Controller
             'name' => 'required|string|max:255|unique:brands',
             'company_name' => 'required|string|max:255',
             'country_id' => 'required|exists:countries,id',
-            'brand_status' => 'required|in:active,inactive,pending',
+            'brand_level_id' => 'nullable|exists:brand_levels,id',
+            'owner_id' => 'nullable|exists:users,id',
+            'brand_status' => 'required|in:listed,started,waiting,rejected,registered',
             'iran_market_presence' => 'required|in:official,unofficial,absent',
             'is_active' => 'boolean',
             'description' => 'nullable|string',
@@ -146,7 +164,7 @@ class BrandController extends Controller
      */
     public function show(Brand $brand): View
     {
-        $brand->load(['categories', 'country']);
+        $brand->load(['categories', 'country', 'level', 'owner.userType']);
         return view('brands.show', compact('brand'));
     }
 
@@ -155,11 +173,13 @@ class BrandController extends Controller
      */
     public function edit(Brand $brand): View
     {
-        $brand->load(['categories', 'country']);
+        $brand->load(['categories', 'country', 'level', 'owner.userType']);
         $countries = Country::active()->ordered()->get();
         $categories = ProductCategory::active()->ordered()->get();
+        $brandLevels = BrandLevel::active()->ordered()->get();
+        $users = User::with('userType')->get();
 
-        return view('brands.edit', compact('brand', 'countries', 'categories'));
+        return view('brands.edit', compact('brand', 'countries', 'categories', 'brandLevels', 'users'));
     }
 
     /**
@@ -171,7 +191,9 @@ class BrandController extends Controller
             'name' => 'required|string|max:255|unique:brands,name,' . $brand->id,
             'company_name' => 'required|string|max:255',
             'country_id' => 'required|exists:countries,id',
-            'brand_status' => 'required|in:active,inactive,pending',
+            'brand_level_id' => 'nullable|exists:brand_levels,id',
+            'owner_id' => 'nullable|exists:users,id',
+            'brand_status' => 'required|in:listed,started,waiting,rejected,registered',
             'iran_market_presence' => 'required|in:official,unofficial,absent',
             'is_active' => 'boolean',
             'description' => 'nullable|string',

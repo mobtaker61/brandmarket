@@ -84,6 +84,44 @@
                     </div>
 
                     <div>
+                        <label for="brand_level_id" class="block text-sm font-medium text-gray-700 mb-2">سطح برند</label>
+                        <select
+                            id="brand_level_id"
+                            name="brand_level_id"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('brand_level_id') border-red-500 @enderror"
+                        >
+                            <option value="">انتخاب کنید</option>
+                            @foreach($brandLevels as $level)
+                                <option value="{{ $level->id }}" {{ old('brand_level_id', $brand->brand_level_id) == $level->id ? 'selected' : '' }}>
+                                    {{ $level->display_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('brand_level_id')
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="owner_id" class="block text-sm font-medium text-gray-700 mb-2">مالک برند</label>
+                        <select
+                            id="owner_id"
+                            name="owner_id"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('owner_id') border-red-500 @enderror"
+                        >
+                            <option value="">انتخاب کنید</option>
+                            @foreach($users as $user)
+                                <option value="{{ $user->id }}" {{ old('owner_id', $brand->owner_id) == $user->id ? 'selected' : '' }}>
+                                    {{ $user->name }} ({{ $user->userType->display_name ?? 'نامشخص' }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('owner_id')
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
                         <label for="brand_status" class="block text-sm font-medium text-gray-700 mb-2">وضعیت برند *</label>
                         <select
                             id="brand_status"
@@ -91,9 +129,11 @@
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('brand_status') border-red-500 @enderror"
                             required
                         >
-                            <option value="active" {{ old('brand_status', $brand->brand_status) == 'active' ? 'selected' : '' }}>فعال</option>
-                            <option value="inactive" {{ old('brand_status', $brand->brand_status) == 'inactive' ? 'selected' : '' }}>غیرفعال</option>
-                            <option value="pending" {{ old('brand_status', $brand->brand_status) == 'pending' ? 'selected' : '' }}>در انتظار</option>
+                                                    <option value="listed" {{ old('brand_status', $brand->brand_status) == 'listed' ? 'selected' : '' }}>لیست شده</option>
+                        <option value="started" {{ old('brand_status', $brand->brand_status) == 'started' ? 'selected' : '' }}>شروع شده</option>
+                        <option value="waiting" {{ old('brand_status', $brand->brand_status) == 'waiting' ? 'selected' : '' }}>در انتظار</option>
+                        <option value="rejected" {{ old('brand_status', $brand->brand_status) == 'rejected' ? 'selected' : '' }}>رد شده</option>
+                        <option value="registered" {{ old('brand_status', $brand->brand_status) == 'registered' ? 'selected' : '' }}>ثبت رسمی</option>
                         </select>
                         @error('brand_status')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>

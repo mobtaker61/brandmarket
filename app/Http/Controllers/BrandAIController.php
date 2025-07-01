@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Brand;
 use App\Models\Country;
 use App\Models\ProductCategory;
+use App\Models\BrandLevel;
+use App\Models\User;
 
 class BrandAIController extends Controller
 {
@@ -15,7 +17,9 @@ class BrandAIController extends Controller
     {
         $countries = Country::active()->ordered()->get();
         $categories = ProductCategory::active()->ordered()->get();
-        return view('brands.ai-create', compact('countries', 'categories'));
+        $brandLevels = BrandLevel::active()->ordered()->get();
+        $users = User::with('userType')->get();
+        return view('brands.ai-create', compact('countries', 'categories', 'brandLevels', 'users'));
     }
 
     public function fetchBrandInfo(Request $request)
@@ -93,6 +97,8 @@ class BrandAIController extends Controller
                 'name' => 'required|string|max:255',
                 'company_name' => 'nullable|string|max:255',
                 'country_id' => 'required|exists:countries,id',
+                'brand_level_id' => 'nullable|exists:brand_levels,id',
+                'owner_id' => 'nullable|exists:users,id',
                 'brand_status' => 'required|in:active,inactive,pending',
                 'iran_market_presence' => 'required|in:official,unofficial,absent',
                 'is_active' => 'boolean',

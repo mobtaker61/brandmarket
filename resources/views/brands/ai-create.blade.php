@@ -26,6 +26,24 @@
                     </select>
                 </div>
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">سطح برند</label>
+                    <select x-model="aiData.brand_level_id" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <option value="">انتخاب کنید</option>
+                        @foreach($brandLevels as $level)
+                            <option value="{{ $level->id }}">{{ $level->display_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">مالک برند</label>
+                    <select x-model="aiData.owner_id" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <option value="">انتخاب کنید</option>
+                        @foreach($users as $user)
+                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->userType->display_name ?? 'نامشخص' }})</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">دسته‌بندی‌ها *</label>
                     <select x-model="aiData.category_ids" multiple class="w-full px-3 py-2 border border-gray-300 rounded-md">
                         @foreach($categories as $cat)
@@ -114,6 +132,8 @@ function aiBrandForm() {
             const payload = {
                 name: this.aiData.name,
                 country_id: this.aiData.country_id,
+                brand_level_id: this.aiData.brand_level_id || null,
+                owner_id: this.aiData.owner_id || null,
                 brand_status: this.aiData.brand_status,
                 iran_market_presence: this.aiData.iran_market_presence,
                 is_active: this.aiData.is_active,

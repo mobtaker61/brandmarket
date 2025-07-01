@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('telegram')->nullable();
             $table->string('linkedin')->nullable();
             $table->string('logo')->nullable();
-            $table->enum('brand_status', ['active', 'inactive', 'pending'])->default('active'); // وضعیت برند
+            $table->enum('brand_status', ['listed', 'started', 'waiting', 'rejected', 'registered'])->default('listed'); // وضعیت برند
             $table->enum('iran_market_presence', ['official', 'unofficial', 'absent'])->default('absent'); // حضور در بازار ایران
             $table->boolean('is_active')->default(true); // فعال یا غیرفعال
             $table->text('notes')->nullable(); // یادداشت

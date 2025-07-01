@@ -31,6 +31,10 @@
                     <i class="fas fa-download ml-2"></i>
                     Export CSV
                 </a>
+                <a href="{{ route('brands.ai_create') }}" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-robot ml-2"></i>
+                    جستجو با AI
+                </a>
                 <a href="{{ route('brands.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
                     <i class="fas fa-plus ml-2"></i>
                     افزودن برند جدید
@@ -43,7 +47,7 @@
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
         <form method="GET" action="{{ route('brands.index') }}" x-data="{ showAdvanced: false }">
             <!-- Basic Filters -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
                 <!-- Search -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">جستجو</label>
@@ -104,6 +108,23 @@
                         <option value="absent" {{ $currentPresence == 'absent' ? 'selected' : '' }}>غایب</option>
                     </select>
                 </div>
+
+                <!-- Brand Level Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">سطح برند</label>
+                    <select
+                        name="brand_level"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">همه سطوح</option>
+                        @foreach($brandLevels as $level)
+                            @php $currentLevel = getRequestValue('brand_level') == $level->id; @endphp
+                            <option value="{{ $level->id }}" {{ $currentLevel ? 'selected' : '' }}>
+                                {{ $level->display_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
 
             <!-- Advanced Filters Toggle -->
@@ -120,7 +141,7 @@
             </div>
 
             <!-- Advanced Filters -->
-            <div x-show="showAdvanced" x-transition class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div x-show="showAdvanced" x-transition class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
                 <!-- Brand Status Filter -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">وضعیت برند</label>
@@ -130,9 +151,11 @@
                     >
                         <option value="">همه</option>
                         @php $currentBrandStatus = getRequestValue('brand_status'); @endphp
-                        <option value="active" {{ $currentBrandStatus == 'active' ? 'selected' : '' }}>فعال</option>
-                        <option value="inactive" {{ $currentBrandStatus == 'inactive' ? 'selected' : '' }}>غیرفعال</option>
-                        <option value="pending" {{ $currentBrandStatus == 'pending' ? 'selected' : '' }}>در انتظار</option>
+                        <option value="listed" {{ $currentBrandStatus == 'listed' ? 'selected' : '' }}>لیست شده</option>
+                        <option value="started" {{ $currentBrandStatus == 'started' ? 'selected' : '' }}>شروع شده</option>
+                        <option value="waiting" {{ $currentBrandStatus == 'waiting' ? 'selected' : '' }}>در انتظار</option>
+                        <option value="rejected" {{ $currentBrandStatus == 'rejected' ? 'selected' : '' }}>رد شده</option>
+                        <option value="registered" {{ $currentBrandStatus == 'registered' ? 'selected' : '' }}>ثبت رسمی</option>
                     </select>
                 </div>
 
@@ -179,6 +202,23 @@
                         <option value="100" {{ $currentPerPage == '100' ? 'selected' : '' }}>100</option>
                     </select>
                 </div>
+
+                <!-- Owner Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">مالک برند</label>
+                    <select
+                        name="owner"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">همه مالکان</option>
+                        @foreach($users as $user)
+                            @php $currentOwner = getRequestValue('owner') == $user->id; @endphp
+                            <option value="{{ $user->id }}" {{ $currentOwner ? 'selected' : '' }}>
+                                {{ $user->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
 
             <!-- Filter Actions -->
@@ -194,7 +234,7 @@
                     </a>
                 </div>
 
-                @if(getRequestValue('search') || getRequestValue('country') || getRequestValue('category') || getRequestValue('iran_presence') || getRequestValue('brand_status') || getRequestValue('is_active') || getRequestValue('sort'))
+                @if(getRequestValue('search') || getRequestValue('country') || getRequestValue('category') || getRequestValue('iran_presence') || getRequestValue('brand_level') || getRequestValue('owner') || getRequestValue('brand_status') || getRequestValue('is_active') || getRequestValue('sort'))
                     <div class="text-sm text-gray-600">
                         {{ $brands->total() }} نتیجه یافت شد
                     </div>
@@ -309,9 +349,11 @@
                 @if(getRequestValue('brand_status'))
                     @php
                         $statusTexts = [
-                            'active' => 'فعال',
-                            'inactive' => 'غیرفعال',
-                            'pending' => 'در انتظار'
+                            'listed' => 'لیست شده',
+                            'started' => 'شروع شده',
+                            'waiting' => 'در انتظار',
+                            'rejected' => 'رد شده',
+                            'registered' => 'ثبت رسمی'
                         ];
                         $currentStatus = getRequestValue('brand_status');
                     @endphp
@@ -429,6 +471,8 @@
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">برند</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">شرکت</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">کشور</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">سطح</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">مالک</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">دسته‌ها</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">وضعیت</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">حضور در ایران</th>
@@ -462,6 +506,25 @@
                                     <span class="text-lg ml-2">{{ $brand->country->flag ?? '' }}</span>
                                     <span class="text-sm text-gray-900">{{ $brand->country->name ?? 'نامشخص' }}</span>
                                 </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if($brand->level)
+                                    <div class="flex items-center">
+                                        <i class="text-lg ml-2 {{ $brand->level->icon ?? '' }}" style="color: {{ $brand->level->color }}"></i>
+                                        <span class="text-sm text-gray-900">{{ $brand->level->display_name }}</span>
+                                    </div>
+                                @else
+                                    <span class="text-sm text-gray-500">تعریف نشده</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if($brand->owner)
+                                    <div class="flex items-center">
+                                        <span class="text-sm text-gray-900">{{ $brand->owner->name }}</span>
+                                    </div>
+                                @else
+                                    <span class="text-sm text-gray-500">تعریف نشده</span>
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex flex-wrap gap-1">

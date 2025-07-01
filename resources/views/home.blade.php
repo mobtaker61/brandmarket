@@ -93,38 +93,76 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">نام برند</th>
-                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">صنعت</th>
+                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">کشور</th>
+                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">دسته‌بندی</th>
+                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">سطح برند</th>
+                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">مالک</th>
                                 <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">وضعیت</th>
-                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">آخرین بروزرسانی</th>
                                 <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">عملیات</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
+                            <template x-if="brands.length === 0">
+                                <tr>
+                                    <td colspan="7" class="px-6 py-8 text-center">
+                                        <div class="text-gray-500">
+                                            <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                            </svg>
+                                            <p class="text-lg font-medium">هیچ برندی یافت نشد</p>
+                                            <p class="text-sm">برای شروع، برند جدیدی اضافه کنید</p>
+                                            <a href="{{ route('brands.create') }}" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                                                افزودن برند جدید
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
                             <template x-for="brand in brands" :key="brand.id">
                                 <tr>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
                                             <div class="flex-shrink-0 h-10 w-10">
-                                                <img class="h-10 w-10 rounded-full" :src="brand.logo" :alt="brand.name">
+                                                <img class="h-10 w-10 rounded-full object-cover" :src="brand.logo || '/images/default-brand.svg'" :alt="brand.name">
                                             </div>
                                             <div class="mr-4">
                                                 <div class="text-sm font-medium text-gray-900">
                                                     <a :href="`/brands/${brand.id}`" class="hover:underline text-blue-700" x-text="brand.name"></a>
                                                 </div>
-                                                <div class="text-sm text-gray-500" x-text="brand.country"></div>
+                                                <div class="text-xs text-gray-500" x-text="brand.description || 'بدون توضیحات'"></div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="brand.industry"></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="brand.country_name"></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="brand.category_name"></td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <i :class="brand.level_icon" :style="`color: ${brand.level_color}`" class="ml-1"></i>
+                                            <span class="text-sm text-gray-900" x-text="brand.level_name"></span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="brand.owner_name"></td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                                              :class="brand.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
-                                              x-text="brand.status === 'active' ? 'فعال' : 'غیرفعال'"></span>
+                                              :class="{
+                                                'bg-blue-100 text-blue-800': brand.brand_status === 'listed',
+                                                'bg-yellow-100 text-yellow-800': brand.brand_status === 'started',
+                                                'bg-orange-100 text-orange-800': brand.brand_status === 'waiting',
+                                                'bg-red-100 text-red-800': brand.brand_status === 'rejected',
+                                                'bg-green-100 text-green-800': brand.brand_status === 'registered',
+                                                'bg-gray-100 text-gray-800': !['listed','started','waiting','rejected','registered'].includes(brand.brand_status)
+                                              }"
+                                              x-text="{
+                                                'listed': 'لیست شده',
+                                                'started': 'شروع شده',
+                                                'waiting': 'در انتظار',
+                                                'rejected': 'رد شده',
+                                                'registered': 'ثبت رسمی'
+                                              }[brand.brand_status] || 'نامشخص'"></span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 persian-numbers" x-text="brand.lastUpdated"></td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <button @click="editBrand(brand.id)" class="text-indigo-600 hover:text-indigo-900 ml-3">ویرایش</button>
-                                        <button @click="viewBrand(brand.id)" class="text-green-600 hover:text-green-900">مشاهده</button>
+                                        <a :href="`/brands/${brand.id}`" class="text-blue-600 hover:text-blue-900 ml-3">مشاهده</a>
+                                        <a :href="`/brands/${brand.id}/edit`" class="text-indigo-600 hover:text-indigo-900">ویرایش</a>
                                     </td>
                                 </tr>
                             </template>
@@ -237,19 +275,43 @@ function recentBrands() {
                     {
                         id: 1,
                         name: 'Apple',
-                        country: 'آمریکا',
-                        industry: 'تکنولوژی',
-                        status: 'active',
-                        lastUpdated: '2024-01-15',
+                        description: 'شرکت اپل آمریکا',
+                        country_name: 'آمریکا',
+                        category_name: 'تکنولوژی',
+                        level_name: 'پرمیوم',
+                        level_icon: 'fas fa-crown',
+                        level_color: '#FFD700',
+                        owner_name: 'مدیر سیستم',
+                        is_active: true,
+                        brand_status: 'listed',
                         logo: 'https://via.placeholder.com/40'
                     },
                     {
                         id: 2,
                         name: 'Samsung',
-                        country: 'کره جنوبی',
-                        industry: 'تکنولوژی',
-                        status: 'active',
-                        lastUpdated: '2024-01-14',
+                        description: 'سامسونگ الکترونیکس',
+                        country_name: 'کره جنوبی',
+                        category_name: 'تکنولوژی',
+                        level_name: 'طلایی',
+                        level_icon: 'fas fa-medal',
+                        level_color: '#FFA500',
+                        owner_name: 'کاربر عادی',
+                        is_active: true,
+                        brand_status: 'started',
+                        logo: 'https://via.placeholder.com/40'
+                    },
+                    {
+                        id: 3,
+                        name: 'Nike',
+                        description: 'نایک اینکورپوریتد',
+                        country_name: 'آمریکا',
+                        category_name: 'ورزشی',
+                        level_name: 'نقره‌ای',
+                        level_icon: 'fas fa-award',
+                        level_color: '#C0C0C0',
+                        owner_name: 'کارمند',
+                        is_active: false,
+                        brand_status: 'registered',
                         logo: 'https://via.placeholder.com/40'
                     }
                 ];

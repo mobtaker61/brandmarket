@@ -13,6 +13,8 @@ class Brand extends Model
         'name',
         'company_name',
         'country_id',
+        'brand_level_id',
+        'owner_id',
         'description',
         'website',
         'instagram',
@@ -35,6 +37,22 @@ class Brand extends Model
     public function country()
     {
         return $this->belongsTo(Country::class);
+    }
+
+    /**
+     * رابطه با سطح برند
+     */
+    public function level()
+    {
+        return $this->belongsTo(BrandLevel::class, 'brand_level_id');
+    }
+
+    /**
+     * رابطه با مالک برند
+     */
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'owner_id');
     }
 
     /**
@@ -79,9 +97,11 @@ class Brand extends Model
     public function getStatusTextAttribute(): string
     {
         return match($this->brand_status) {
-            'active' => 'فعال',
-            'inactive' => 'غیرفعال',
-            'pending' => 'در انتظار',
+            'listed' => 'لیست شده',
+            'started' => 'شروع شده',
+            'waiting' => 'در انتظار',
+            'rejected' => 'رد شده',
+            'registered' => 'ثبت رسمی',
             default => 'نامشخص'
         };
     }
@@ -92,9 +112,11 @@ class Brand extends Model
     public function getStatusClassAttribute(): string
     {
         return match($this->brand_status) {
-            'active' => 'bg-green-100 text-green-800',
-            'inactive' => 'bg-red-100 text-red-800',
-            'pending' => 'bg-yellow-100 text-yellow-800',
+            'listed' => 'bg-blue-100 text-blue-800',
+            'started' => 'bg-yellow-100 text-yellow-800',
+            'waiting' => 'bg-orange-100 text-orange-800',
+            'rejected' => 'bg-red-100 text-red-800',
+            'registered' => 'bg-green-100 text-green-800',
             default => 'bg-gray-100 text-gray-800'
         };
     }

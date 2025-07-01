@@ -25,6 +25,9 @@ class DatabaseSeeder extends Seeder
 
         // اجرای Seeder ها به ترتیب
         $this->call([
+            UserTypeSeeder::class,
+            BrandLevelSeeder::class,
+            UserSeeder::class,
             CountrySeeder::class,
             ProductCategorySeeder::class,
             BrandSeeder::class,

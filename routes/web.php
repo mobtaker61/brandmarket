@@ -47,14 +47,53 @@ Route::delete('/brands/{brand}', [BrandController::class, 'destroy'])->name('bra
 // تحلیل‌ها
 Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics');
 Route::get('/analytics/export', [AnalyticsController::class, 'export'])->name('analytics.export');
+Route::get('/reports/analytics.{format}', [AnalyticsController::class, 'downloadReport'])->name('analytics.download');
 
-// API Routes برای Alpine.js
-Route::prefix('api')->group(function () {
-    Route::get('/stats', [AnalyticsController::class, 'getStats']);
-    Route::get('/brands/recent', [BrandController::class, 'getRecent']);
-    Route::get('/categories', [ProductCategoryController::class, 'getAll']);
-    Route::get('/categories/{category}/children', [ProductCategoryController::class, 'getChildren']);
-    Route::get('/countries', [BrandController::class, 'getCountries']);
+// API Routes
+Route::get('/api/stats', function () {
+    $totalBrands = \App\Models\Brand::count();
+    $activeBrands = \App\Models\Brand::where('is_active', true)->count();
+
+    // محاسبه رشد ماهانه
+    $lastMonth = \App\Models\Brand::where('created_at', '>=', now()->subMonth())->count();
+    $previousMonth = \App\Models\Brand::whereBetween('created_at', [now()->subMonths(2), now()->subMonth()])->count();
+    $monthlyGrowth = $previousMonth > 0 ? round((($lastMonth - $previousMonth) / $previousMonth) * 100, 1) : 0;
+
+    return response()->json([
+        'totalBrands' => $totalBrands,
+        'activeBrands' => $activeBrands,
+        'monthlyGrowth' => $monthlyGrowth
+    ]);
+});
+
+Route::get('/api/categories', function () {
+    $categories = \App\Models\ProductCategory::with('children')->get();
+    return response()->json($categories);
+});
+
+Route::get('/api/brands/recent', function () {
+    $brands = \App\Models\Brand::with(['country', 'category', 'brandLevel', 'owner'])
+        ->latest()
+        ->take(10)
+        ->get()
+        ->map(function ($brand) {
+            return [
+                'id' => $brand->id,
+                'name' => $brand->name,
+                'description' => $brand->description,
+                'logo' => $brand->logo,
+                'country_name' => $brand->country ? $brand->country->name : 'نامشخص',
+                'category_name' => $brand->category ? $brand->category->name : 'نامشخص',
+                'level_name' => $brand->brandLevel ? $brand->brandLevel->name : 'نامشخص',
+                'level_icon' => $brand->brandLevel ? $brand->brandLevel->icon : '',
+                'level_color' => $brand->brandLevel ? $brand->brandLevel->color : '#000',
+                'owner_name' => $brand->owner ? $brand->owner->name : 'نامشخص',
+                'is_active' => $brand->is_active,
+                'created_at' => $brand->created_at->format('Y-m-d H:i:s')
+            ];
+        });
+
+    return response()->json($brands);
 });
 
 Route::get('/test', function() { return 'test ok'; });
