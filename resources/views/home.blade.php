@@ -85,26 +85,25 @@
         </div>
 
         <!-- Recent Brands -->
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg" x-data="recentBrands()">
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg w-1/2 mx-auto" x-data="recentBrands()">
             <div class="p-6">
                 <h2 class="text-xl font-semibold text-gray-900 mb-4">برندهای اخیر</h2>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 table">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">نام برند</th>
-                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">کشور</th>
-                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">دسته‌بندی</th>
-                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">سطح برند</th>
-                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">مالک</th>
-                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">وضعیت</th>
-                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">عملیات</th>
+                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">تصویر</th>
+                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">نام برند</th>
+                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">دسته‌بندی</th>
+                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">سطح برند</th>
+                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">مالک</th>
+                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">وضعیت</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             <template x-if="brands.length === 0">
                                 <tr>
-                                    <td colspan="7" class="px-6 py-8 text-center">
+                                    <td colspan="6" class="px-6 py-8 text-center">
                                         <div class="text-gray-500">
                                             <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
@@ -120,29 +119,22 @@
                             </template>
                             <template x-for="brand in brands" :key="brand.id">
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <div class="flex-shrink-0 h-10 w-10">
-                                                <img class="h-10 w-10 rounded-full object-cover" :src="brand.logo || '/images/default-brand.svg'" :alt="brand.name">
-                                            </div>
-                                            <div class="mr-4">
-                                                <div class="text-sm font-medium text-gray-900">
-                                                    <a :href="`/brands/${brand.id}`" class="hover:underline text-blue-700" x-text="brand.name"></a>
-                                                </div>
-                                                <div class="text-xs text-gray-500" x-text="brand.description || 'بدون توضیحات'"></div>
-                                            </div>
-                                        </div>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <img class="h-10 w-10 rounded-full object-cover mx-auto" :src="brand.logo || '/images/default-brand.svg'" :alt="brand.name">
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="brand.country_name"></td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="brand.category_name"></td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <i :class="brand.level_icon" :style="`color: ${brand.level_color}`" class="ml-1"></i>
-                                            <span class="text-sm text-gray-900" x-text="brand.level_name"></span>
-                                        </div>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                                        <span class="flex items-start justify-start">
+                                            <span x-text="brand.country_flag"></span>
+                                            <a :href="`/brands/${brand.id}`" class="mr-1 text-blue-600 hover:text-blue-900 hover:underline" x-text="brand.name"></a>
+                                        </span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="brand.owner_name"></td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center" x-text="brand.category_name"></td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                                        <i :class="brand.level_icon" :style="`color: ${brand.level_color}`" class="ml-1"></i>
+                                        <span x-text="brand.level_name"></span>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center" x-text="brand.owner_name"></td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-center">
                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                                               :class="{
                                                 'bg-blue-100 text-blue-800': brand.brand_status === 'listed',
@@ -159,10 +151,6 @@
                                                 'rejected': 'رد شده',
                                                 'registered': 'ثبت رسمی'
                                               }[brand.brand_status] || 'نامشخص'"></span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <a :href="`/brands/${brand.id}`" class="text-blue-600 hover:text-blue-900 ml-3">مشاهده</a>
-                                        <a :href="`/brands/${brand.id}/edit`" class="text-indigo-600 hover:text-indigo-900">ویرایش</a>
                                     </td>
                                 </tr>
                             </template>

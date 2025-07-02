@@ -255,24 +255,25 @@ class BrandController extends Controller
      */
     public function getRecent(): JsonResponse
     {
-        $brands = Brand::with(['categories', 'country'])
+        $brands = Brand::with(['categories', 'country', 'level', 'owner'])
             ->latest()
-            ->limit(10)
+            ->limit(5)
             ->get()
             ->map(function ($brand) {
                 return [
                     'id' => $brand->id,
                     'name' => $brand->name,
                     'company_name' => $brand->company_name,
-                    'country' => $brand->country ? $brand->country->name : 'نامشخص',
-                    'country_id' => $brand->country_id,
+                    'country_name' => $brand->country ? $brand->country->name : 'نامشخص',
                     'country_flag' => $brand->country ? $brand->country->flag : '',
-                    'categories' => $brand->categories->pluck('name')->toArray(),
+                    'category_name' => $brand->categories->first()?->name ?? '-',
+                    'level_name' => $brand->level?->display_name ?? '-',
+                    'level_icon' => $brand->level?->icon ?? '',
+                    'level_color' => $brand->level?->color ?? '',
+                    'owner_name' => $brand->owner?->name ?? '-',
                     'brand_status' => $brand->brand_status,
-                    'iran_market_presence' => $brand->iran_market_presence,
                     'is_active' => $brand->is_active,
-                    'lastUpdated' => $brand->updated_at->format('Y-m-d'),
-                    'logo' => $brand->logo ?? 'https://via.placeholder.com/40'
+                    'logo' => $brand->logo ?? 'https://via.placeholder.com/40',
                 ];
             });
 

@@ -51,8 +51,11 @@ class ProductCategoryController extends Controller
      */
     public function show(ProductCategory $category)
     {
-        $category->load(['children', 'parent', 'brands']);
-        return view('categories.show', compact('category'));
+        $category->load(['children', 'parent']);
+        $brands = $category->brands()->with(['country', 'level', 'owner'])
+            ->latest()
+            ->paginate(10);
+        return view('categories.show', compact('category', 'brands'));
     }
 
     /**

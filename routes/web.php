@@ -71,30 +71,7 @@ Route::get('/api/categories', function () {
     return response()->json($categories);
 });
 
-Route::get('/api/brands/recent', function () {
-    $brands = \App\Models\Brand::with(['country', 'category', 'brandLevel', 'owner'])
-        ->latest()
-        ->take(10)
-        ->get()
-        ->map(function ($brand) {
-            return [
-                'id' => $brand->id,
-                'name' => $brand->name,
-                'description' => $brand->description,
-                'logo' => $brand->logo,
-                'country_name' => $brand->country ? $brand->country->name : 'نامشخص',
-                'category_name' => $brand->category ? $brand->category->name : 'نامشخص',
-                'level_name' => $brand->brandLevel ? $brand->brandLevel->name : 'نامشخص',
-                'level_icon' => $brand->brandLevel ? $brand->brandLevel->icon : '',
-                'level_color' => $brand->brandLevel ? $brand->brandLevel->color : '#000',
-                'owner_name' => $brand->owner ? $brand->owner->name : 'نامشخص',
-                'is_active' => $brand->is_active,
-                'created_at' => $brand->created_at->format('Y-m-d H:i:s')
-            ];
-        });
-
-    return response()->json($brands);
-});
+Route::get('/api/brands/recent', [BrandController::class, 'getRecent']);
 
 Route::get('/api/brands/check-name', function (\Illuminate\Http\Request $request) {
     $name = $request->query('name');
