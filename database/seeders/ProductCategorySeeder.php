@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\ProductCategory;
+use Illuminate\Support\Facades\DB;
 
 class ProductCategorySeeder extends Seeder
 {
@@ -13,6 +14,10 @@ class ProductCategorySeeder extends Seeder
      */
     public function run(): void
     {
+        // پاک‌سازی جدول واسط و دسته‌ها
+        DB::table('brand_category')->delete();
+        ProductCategory::query()->delete();
+
         $categories = [
             [
                 'name' => 'مواد غذایی و نوشیدنی',
@@ -216,12 +221,20 @@ class ProductCategorySeeder extends Seeder
             $children = $categoryData['children'] ?? [];
             unset($categoryData['children']);
 
-            $category = ProductCategory::create($categoryData);
+            // بررسی عدم وجود دسته تکراری با همین نام و parent_id
+            $category = ProductCategory::firstOrCreate(
+                ['name' => $categoryData['name'], 'parent_id' => null],
+                $categoryData
+            );
 
             foreach ($children as $childData) {
                 $childData['parent_id'] = $category->id;
                 $childData['sort_order'] = $childData['sort_order'] ?? 0;
-                ProductCategory::create($childData);
+                // بررسی عدم وجود زیردسته تکراری با همین نام و parent_id
+                ProductCategory::firstOrCreate(
+                    ['name' => $childData['name'], 'parent_id' => $category->id],
+                    $childData
+                );
             }
         }
     }

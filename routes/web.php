@@ -96,4 +96,10 @@ Route::get('/api/brands/recent', function () {
     return response()->json($brands);
 });
 
+Route::get('/api/brands/check-name', function (\Illuminate\Http\Request $request) {
+    $name = $request->query('name');
+    $exists = \App\Models\Brand::where('name', $name)->exists();
+    return response()->json(['exists' => $exists]);
+});
+
 Route::get('/test', function() { return 'test ok'; });

@@ -117,7 +117,8 @@ function categoriesData() {
         async loadCategories() {
             try {
                 const response = await axios.get('/api/categories');
-                this.categories = response.data;
+                // فقط دسته‌های مادر را نمایش بده و children را نگه دار
+                this.categories = response.data.filter(cat => cat.parent_id === null);
             } catch (error) {
                 console.error('خطا در بارگذاری دسته‌ها:', error);
                 // داده‌های نمونه برای نمایش

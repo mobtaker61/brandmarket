@@ -47,13 +47,13 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">دسته‌بندی‌ها *</label>
                     <select x-model="aiData.category_ids" multiple class="w-full px-3 py-2 border border-gray-300 rounded-md" size="8">
                         @foreach($categories as $category)
-                            @if($category->children->count())
+                            @if(is_null($category->parent_id) && $category->children->count())
                                 <optgroup label="{{ $category->name }}">
                                     @foreach($category->children as $child)
                                         <option value="{{ $child->id }}">&nbsp;&nbsp;&nbsp;{{ $child->name }}</option>
                                     @endforeach
                                 </optgroup>
-                            @else
+                            @elseif(is_null($category->parent_id))
                                 <option value="{{ $category->id }}">{{ $category->name }}</option>
                             @endif
                         @endforeach
@@ -112,27 +112,52 @@ function aiBrandForm() {
             this.loading = true;
             this.error = '';
             this.aiData = null;
-            fetch("{{ route('brands.ai_fetch') }}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ name: this.brandName })
-            })
-            .then(res => res.json())
-            .then(data => {
-                this.loading = false;
-                if (data.success) {
-                    this.aiData = data.data;
-                } else {
-                    this.error = data.message || 'خطا در دریافت اطلاعات.';
-                }
-            })
-            .catch(() => {
-                this.loading = false;
-                this.error = 'خطا در ارتباط با سرور.';
-            });
+            // چک برند تکراری قبل از ارسال به AI
+            fetch('/api/brands/check-name?name=' + encodeURIComponent(this.brandName))
+                .then(res => res.json())
+                .then(check => {
+                    if (check.exists) {
+                        this.loading = false;
+                        this.error = 'برندی با این نام قبلاً ثبت شده است.';
+                        return;
+                    }
+                    // اگر تکراری نبود، درخواست به AI
+                    fetch("{{ route('brands.ai_fetch') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ name: this.brandName })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        this.loading = false;
+                        // اگر خروجی AI خالی یا ناقص بود
+                        if (!data.success || !data.data || !data.data.name || !data.data.country_id || !data.data.industry) {
+                            this.error = 'اطلاعاتی برای این برند یافت نشد یا ناقص است. لطفاً نام برند را دقیق‌تر وارد کنید.';
+                            this.aiData = null;
+                            return;
+                        }
+                        let ids = data.data.category_ids;
+                        if (!Array.isArray(ids)) {
+                            ids = ids ? [String(ids)] : [];
+                        } else {
+                            ids = ids.map(String);
+                        }
+                        ids = ids.filter(x => x && x !== 'null' && x !== 'undefined');
+                        data.data.category_ids = [...ids];
+                        this.aiData = data.data;
+                    })
+                    .catch(() => {
+                        this.loading = false;
+                        this.error = 'خطا در ارتباط با سرور.';
+                    });
+                })
+                .catch(() => {
+                    this.loading = false;
+                    this.error = 'خطا در ارتباط با سرور.';
+                });
         },
         submitForm() {
             this.submitting = true;

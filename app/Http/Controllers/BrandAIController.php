@@ -59,29 +59,34 @@ class BrandAIController extends Controller
             $country_id = $country ? $country->id : null;
             // تطبیق دسته‌بندی/صنعت (ممکن است چند مقدار باشد)
             $category_ids = [];
+            $matchedIndustries = [];
             if (!empty($aiData['industry'])) {
-                $industries = array_map('trim', explode(',', $aiData['industry']));
+                // پاکسازی فاصله و کاراکترهای اضافی
+                $industries = preg_split('/\s*,\s*/', trim($aiData['industry']));
                 foreach ($industries as $industry) {
-                    // ابتدا بر اساس نام دسته‌بندی جستجو (شامل زیردسته‌ها)
-                    $cat = ProductCategory::where('name', 'like', '%' . $industry . '%')->first();
+                    $industry = trim($industry);
+                    if ($industry === '') continue;
+                    $industryLower = mb_strtolower($industry);
+                    // جستجوی نام دسته (case-insensitive)
+                    $cat = ProductCategory::whereRaw('LOWER(name) LIKE ?', ['%' . $industryLower . '%'])->first();
 
-                    // اگر پیدا نشد، بر اساس کلمات کلیدی صنعت جستجو (شامل زیردسته‌ها)
+                    // اگر پیدا نشد، جستجوی industry_keywords (case-insensitive)
                     if (!$cat) {
-                        $cat = ProductCategory::whereJsonContains('industry_keywords', strtolower($industry))->first();
+                        $cat = ProductCategory::whereRaw('JSON_SEARCH(LOWER(JSON_EXTRACT(industry_keywords, "$[*]")), "one", ?, null, "$[*]") IS NOT NULL', [$industryLower])->first();
                     }
 
-                    // اگر هنوز پیدا نشد، بر اساس کلمات کلیدی مشابه جستجو (شامل زیردسته‌ها)
+                    // اگر هنوز پیدا نشد، جستجوی industry_keywords با LIKE (case-insensitive)
                     if (!$cat) {
-                        $cat = ProductCategory::where(function($query) use ($industry) {
-                            $query->whereJsonLength('industry_keywords', '>', 0)
-                                  ->whereRaw('JSON_SEARCH(LOWER(industry_keywords), "one", ?, null, "$[*]")', ['%' . strtolower($industry) . '%']);
-                        })->first();
+                        $cat = ProductCategory::whereRaw('JSON_SEARCH(LOWER(JSON_EXTRACT(industry_keywords, "$[*]")), "one", ?, null, "$[*]") IS NOT NULL', ['%' . $industryLower . '%'])->first();
                     }
 
                     if ($cat && !in_array($cat->id, $category_ids)) {
                         $category_ids[] = $cat->id;
+                        $matchedIndustries[] = $industry;
                     }
                 }
+                // لاگ برای دیباگ
+                Log::info('AI Industry:', ['industry' => $aiData['industry'], 'matched_categories' => $category_ids, 'matched_industries' => $matchedIndustries]);
             }
             // آماده‌سازی داده برای فرم
             $result = [
