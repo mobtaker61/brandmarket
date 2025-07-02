@@ -14,6 +14,7 @@ class ProductCategory extends Model
         'name',
         'slug',
         'description',
+        'industry_keywords',
         'icon',
         'color',
         'parent_id',
@@ -24,6 +25,7 @@ class ProductCategory extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'sort_order' => 'integer',
+        'industry_keywords' => 'array',
     ];
 
     /**

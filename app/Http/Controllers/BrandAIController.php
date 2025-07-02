@@ -16,7 +16,7 @@ class BrandAIController extends Controller
     public function showForm()
     {
         $countries = Country::active()->ordered()->get();
-        $categories = ProductCategory::active()->ordered()->get();
+        $categories = ProductCategory::with('children')->active()->ordered()->get();
         $brandLevels = BrandLevel::active()->ordered()->get();
         $users = User::with('userType')->get();
         return view('brands.ai-create', compact('countries', 'categories', 'brandLevels', 'users'));
@@ -51,7 +51,10 @@ class BrandAIController extends Controller
             // تطبیق کشور
             $country = null;
             if (!empty($aiData['country'])) {
-                $country = Country::where('name', 'like', '%' . $aiData['country'] . '%')->first();
+                $country = Country::where(function($query) use ($aiData) {
+                    $query->where('name', 'like', '%' . $aiData['country'] . '%')
+                          ->orWhere('name_en', 'like', '%' . $aiData['country'] . '%');
+                })->first();
             }
             $country_id = $country ? $country->id : null;
             // تطبیق دسته‌بندی/صنعت (ممکن است چند مقدار باشد)
@@ -59,8 +62,23 @@ class BrandAIController extends Controller
             if (!empty($aiData['industry'])) {
                 $industries = array_map('trim', explode(',', $aiData['industry']));
                 foreach ($industries as $industry) {
+                    // ابتدا بر اساس نام دسته‌بندی جستجو (شامل زیردسته‌ها)
                     $cat = ProductCategory::where('name', 'like', '%' . $industry . '%')->first();
-                    if ($cat) {
+
+                    // اگر پیدا نشد، بر اساس کلمات کلیدی صنعت جستجو (شامل زیردسته‌ها)
+                    if (!$cat) {
+                        $cat = ProductCategory::whereJsonContains('industry_keywords', strtolower($industry))->first();
+                    }
+
+                    // اگر هنوز پیدا نشد، بر اساس کلمات کلیدی مشابه جستجو (شامل زیردسته‌ها)
+                    if (!$cat) {
+                        $cat = ProductCategory::where(function($query) use ($industry) {
+                            $query->whereJsonLength('industry_keywords', '>', 0)
+                                  ->whereRaw('JSON_SEARCH(LOWER(industry_keywords), "one", ?, null, "$[*]")', ['%' . strtolower($industry) . '%']);
+                        })->first();
+                    }
+
+                    if ($cat && !in_array($cat->id, $category_ids)) {
                         $category_ids[] = $cat->id;
                     }
                 }
@@ -70,7 +88,7 @@ class BrandAIController extends Controller
                 'name' => $aiData['name'] ?? '',
                 'country_id' => $country_id,
                 'country_name' => $aiData['country'] ?? '',
-                'brand_status' => 'active',
+                'brand_status' => 'listed',
                 'iran_market_presence' => $aiData['iran_market_presence'] ?? '',
                 'is_active' => true,
                 'description' => $aiData['description'] ?? '',
@@ -99,7 +117,7 @@ class BrandAIController extends Controller
                 'country_id' => 'required|exists:countries,id',
                 'brand_level_id' => 'nullable|exists:brand_levels,id',
                 'owner_id' => 'nullable|exists:users,id',
-                'brand_status' => 'required|in:active,inactive,pending',
+                'brand_status' => 'required|in:listed,started,waiting,rejected,registered',
                 'iran_market_presence' => 'required|in:official,unofficial,absent',
                 'is_active' => 'boolean',
                 'description' => 'nullable|string',

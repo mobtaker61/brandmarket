@@ -21,7 +21,7 @@
                     <select x-model="aiData.country_id" class="w-full px-3 py-2 border border-gray-300 rounded-md">
                         <option value="">انتخاب کنید</option>
                         @foreach($countries as $country)
-                            <option value="{{ $country->id }}">{{ $country->flag }} {{ $country->name }}</option>
+                            <option value="{{ $country->id }}">{{ $country->flag }} {{ $country->name }} ({{ $country->name_en }})</option>
                         @endforeach
                     </select>
                 </div>
@@ -45,12 +45,20 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">دسته‌بندی‌ها *</label>
-                    <select x-model="aiData.category_ids" multiple class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                    <select x-model="aiData.category_ids" multiple class="w-full px-3 py-2 border border-gray-300 rounded-md" size="8">
+                        @foreach($categories as $category)
+                            @if($category->children->count())
+                                <optgroup label="{{ $category->name }}">
+                                    @foreach($category->children as $child)
+                                        <option value="{{ $child->id }}">&nbsp;&nbsp;&nbsp;{{ $child->name }}</option>
+                                    @endforeach
+                                </optgroup>
+                            @else
+                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @endif
                         @endforeach
                     </select>
-                    <small class="text-gray-500">می‌توانید چند دسته‌بندی انتخاب کنید.</small>
+                    <small class="text-gray-500">دسته‌های تطبیق یافته با صنعت به صورت خودکار انتخاب شده‌اند.</small>
                 </div>
                 <div class="grid grid-cols-1 gap-4">
                     <div>
@@ -134,7 +142,7 @@ function aiBrandForm() {
                 country_id: this.aiData.country_id,
                 brand_level_id: this.aiData.brand_level_id || null,
                 owner_id: this.aiData.owner_id || null,
-                brand_status: this.aiData.brand_status,
+                brand_status: this.aiData.brand_status || 'listed',
                 iran_market_presence: this.aiData.iran_market_presence,
                 is_active: this.aiData.is_active,
                 description: this.aiData.description,
